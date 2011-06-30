@@ -427,7 +427,56 @@ class TranslationManager(models.Manager):
     #===========================================================================
     def language(self, language_code=None):
         return self.get_query_set().language(language_code)
-    
+
+    def language_or_default(self, language_code=None, default=None):
+        """ This method returns content in a default language when the
+        content is missing (NULL or '') in the requested language
+
+        >>> for x in Region.objects.language('en-us'): print x
+        ...
+        Africa
+        Central Africa
+        East Africa
+        North Africa
+        Southern Africa
+        West Africa
+        >>> for x in Region.objects.language('fr'): print x
+        ...
+        L'Afrique
+        >>> for x in Region.objects.language_or_default('fr'): print x
+        ...
+        North Africa
+        West Africa
+        East Africa
+        Central Africa
+        Southern Africa
+        L'Afrique
+        """
+        if not language_code:
+            language_code = get_language()
+        if not default:
+            default = settings.LANGUAGES[0][0]
+
+        shared = self.model._meta.db_table
+        translated = self.translations_model._meta.db_table
+
+        sql = ["SELECT s.*,"]
+        translated_cols = []
+        for fld in self.translations_model._meta.fields:
+            if fld.name in ('id', 'master', 'language_code'):
+                continue
+            translated_cols.append(
+                "CASE WHEN t.%(name)s IS NULL OR t.%(name)s = '' "
+                "THEN  d.%(name)s ELSE t.%(name)s END AS %(name)s"
+                % {'name': fld.name})
+        sql.append(", ".join(translated_cols))
+        sql.append("FROM %s s " % shared)
+        sql.append("LEFT OUTER JOIN %s t ON s.id = t.master_id" % translated)
+        sql.append("AND t.language_code='%s'" % language_code)
+        sql.append("LEFT OUTER JOIN %s d ON s.id = d.master_id" % translated)
+        sql.append("AND d.language_code='%s'" % default)
+        return self.raw(" ".join(sql))
+
     def untranslated(self):
         return self._fallback_manager.get_query_set()
     
