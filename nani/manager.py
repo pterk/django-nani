@@ -316,7 +316,20 @@ class TranslationQueryset(QuerySet):
         return super(TranslationQueryset, self).latest(field_name)
 
     def in_bulk(self, id_list):
-        raise NotImplementedError()
+        """
+        Returns a dictionary mapping each of the given IDs to the object with
+        that ID.
+        """
+        assert self.query.can_filter(), \
+                "Cannot use 'limit' or 'offset' with in_bulk"
+        assert isinstance(id_list, (tuple,  list, set, frozenset)), \
+                "in_bulk() must be provided with a list of IDs."
+        if not id_list:
+            return {}
+        qs = self._clone()
+        qs.query.add_filter(('master__id__in', id_list))
+        qs.query.clear_ordering(force_empty=True)
+        return dict([(obj._get_pk_val(), obj) for obj in qs.iterator()])
 
     def delete(self):
         qs = self._get_shared_query_set()
