@@ -73,8 +73,8 @@ class TranslatableModelFormMetaclass(ModelFormMetaclass):
             tfields = fields_for_model(mopts.translations_model, tfieldnames,
                                        texclude, opts.widgets, formfield_callback)
             
-            fields = sfields
-            fields.update(tfields)
+            fields = tfields
+            fields.update(sfields)
             
             # make sure opts.fields doesn't specify an invalid field
             none_model_fields = [k for k, v in fields.iteritems() if not v]
