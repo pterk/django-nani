@@ -372,15 +372,6 @@ class TranslationQueryset(QuerySet):
         newargs, newkwargs = self._translate_args_kwargs(*args, **kwargs)
         return super(TranslationQueryset, self).exclude(*newargs, **newkwargs)
 
-    def complex_filter(self, filter_obj):
-        # admin calls this with an empy filter_obj sometimes
-        if filter_obj == {}:
-            return self
-        raise NotImplementedError()
-
-    def annotate(self, *args, **kwargs):
-        raise NotImplementedError()
-
     def order_by(self, *field_names):
         """
         Returns a new QuerySet instance with the ordering changed.
@@ -751,15 +742,6 @@ class TranslationAwareQueryset(QuerySet):
         raise NotImplementedError()
 
     def exclude(self, *args, **kwargs):
-        raise NotImplementedError()
-
-    def complex_filter(self, filter_obj):
-        # admin calls this with an empy filter_obj sometimes
-        if filter_obj == {}:
-            return self
-        raise NotImplementedError()
-
-    def annotate(self, *args, **kwargs):
         raise NotImplementedError()
 
     def order_by(self, *field_names):
