@@ -154,6 +154,7 @@ class TranslatableModelForm(ModelForm):
                               commit, construct=True)
         trans.language_code = language_code
         trans.master = self.instance
+        trans.save()
         return combine(trans)
         
     def _post_clean(self):
